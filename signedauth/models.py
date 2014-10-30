@@ -117,8 +117,12 @@ class UserKey(models.Model):
         return verify_url(url, username, self.key)
 
 # maybe monkeypatch user to use UserKey as its profile without forcing all users to have keys
-if settings.AUTH_PROFILE_MODULE == 'signedauth.UserKey':
-    User.profile = property(lambda u: UserKey.objects.get_or_create(user=u)[0])
+# NOTE: AUTH_PROFILE_MODULE setting has been removed starting in Django 1.7
+try:
+    if settings.AUTH_PROFILE_MODULE == 'signedauth.UserKey':
+        User.profile = property(lambda u: UserKey.objects.get_or_create(user=u)[0])
+except AttributeError:
+    pass
 
 class WhitelistedIPManager(models.Manager):
     def request_is_whitelisted(self, request):
